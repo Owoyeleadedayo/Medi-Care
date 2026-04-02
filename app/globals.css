@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+.input-phone .PhoneInputInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d5d7dc;
+  width: 100%;
+  margin-left: 3px;
+}
+

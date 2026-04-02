@@ -1,0 +1,1 @@
+- [x] Step 4: Mark complete and attempt_completion
