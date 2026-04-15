@@ -112,23 +112,7 @@ const RegisterForm = ({ user }: { user: User }) => {
           </div>
         </div>
 
-        <CustomFormField
-          fieldType={FormFieldType.DATE_PICKER}
-          control={form.control}
-          name="birthDate"
-          label="Date of Birth"
-          placeholder="Please Enter Your Date of Birth"
-          icon={Mail}
-        />
-
-        <CustomFormField
-          fieldType={FormFieldType.SKELETON}
-          control={form.control}
-          name="gender"
-          label="Gender"
-          placeholder="Please Enter Your Email Address"
-          icon={Mail}
-        />
+        <div></div>
       </section>
 
       <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
