@@ -48,7 +48,7 @@ const RenderField = <T extends FieldValues>({
           <Input
             {...field}
             placeholder={placeholder}
-            className="border-0 bg-transparent focus:ring-0 focus-visible:ring-0"
+            className="border-0 "
           />
         </div>
       );

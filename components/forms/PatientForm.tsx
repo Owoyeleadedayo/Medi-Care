@@ -9,6 +9,7 @@ import SubmitButton from "../SubmitButton";
 import { useState } from "react";
 import { UserFormValidation } from "@/lib/validation";
 import { useRouter } from "next/navigation";
+import { createUser } from "@/lib/actions/patient.actions";
 
 export enum FormFieldType {
   INPUT = "input",
@@ -19,7 +20,6 @@ export enum FormFieldType {
   SELECT = "select",
   SKELETON = "skeleton",
 }
-
 
 const PatientForm = () => {
   const router = useRouter();
@@ -33,25 +33,49 @@ const PatientForm = () => {
     },
   });
 
-  async function onSubmit({name, email, phone}: z.infer<typeof UserFormValidation>) {
-    setIsLoading(true);
-    try {
-      // const userData = {
-      //   name,
-      //   email,
-      //   phone,
-      // };
-      // const user = await createUser (userData);
+  const formatPhone = (phone: string): string => {
+    if (!phone) throw new Error("Phone number is required");
 
-      // if(user) router.push(`/patient/${user.id}/register`);
+    let digits = phone.replace(/\D/g, "");
 
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setIsLoading(false);
+    if (digits.startsWith("0")) {
+      digits = `234${digits.slice(1)}`;
     }
-    
-  }
+
+    if (!digits.startsWith("234")) {
+      throw new Error("Invalid Nigerian number");
+    }
+
+    const formatted = `+${digits}`;
+
+    if (!/^\+[1-9]\d{7,14}$/.test(formatted)) {
+      throw new Error("Invalid phone format");
+    }
+
+    return formatted;
+  };
+
+  const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
+    setIsLoading(true);
+
+    try {
+      const user = {
+        name: values.name,
+        email: values.email,
+        phone: formatPhone(values.phone),
+      };
+
+      const newUser = await createUser(user);
+
+      if (newUser) {
+        router.push(`/patients/${newUser.$id}/register`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    setIsLoading(false);
+  };
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1">
@@ -77,7 +101,6 @@ const PatientForm = () => {
         fieldType={FormFieldType.INPUT}
         control={form.control}
         name="email"
-        label="Email"
         placeholder="Please Enter Your Email Address"
         icon={Mail}
       />
@@ -86,7 +109,6 @@ const PatientForm = () => {
         fieldType={FormFieldType.PHONE_INPUT}
         control={form.control}
         name="phone"
-        label="Phone Number"
       />
 
       <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
