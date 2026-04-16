@@ -7,20 +7,31 @@ import CustomFormField from "../CustomFormField";
 import { Mail, User } from "lucide-react";
 import SubmitButton from "../SubmitButton";
 import { useState } from "react";
-import { UserFormValidation } from "@/lib/validation";
+import { PatientFormValidation } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 import { createUser } from "@/lib/actions/patient.actions";
 import { FormFieldType } from "./PatientForm";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { GenderOptions, PatientFormDefaultValues } from "@/constants";
+import "react-datepicker/dist/react-datepicker.css";
+import "react-phone-number-input/style.css";
 
 const RegisterForm = ({ user }: { user: User }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm<z.infer<typeof UserFormValidation>>({
-    resolver: zodResolver(UserFormValidation),
+
+  type PatientFormValues = z.infer<typeof PatientFormValidation>;
+
+  const form = useForm<PatientFormValues>({
+    resolver: zodResolver(PatientFormValidation),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
+      ...PatientFormDefaultValues,
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
+      birthDate: null,
+      gender: "Male",
     },
   });
 
@@ -46,27 +57,26 @@ const RegisterForm = ({ user }: { user: User }) => {
     return formatted;
   };
 
-  const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
-    setIsLoading(true);
+ const onSubmit = async (values: PatientFormValues) => {
+   setIsLoading(true);
 
-    try {
-      const user = {
-        name: values.name,
-        email: values.email,
-        phone: formatPhone(values.phone),
-      };
+   try {
+     const payload = {
+       ...values,
+       phone: formatPhone(values.phone),
+     };
 
-      const newUser = await createUser(user);
+     const newUser = await createUser(payload);
 
-      if (newUser) {
-        router.push(`/patients/${newUser.$id}/register`);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-
-    setIsLoading(false);
-  };
+     if (newUser) {
+       router.push(`/patients/${newUser.$id}/register`);
+     }
+   } catch (err) {
+     console.log(err);
+   } finally {
+     setIsLoading(false);
+   }
+ };
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 space-y-12">
@@ -79,7 +89,7 @@ const RegisterForm = ({ user }: { user: User }) => {
 
       <section className="space-y-6 b">
         <div className="mb-9 space-y-1">
-          <h2 className="text-xl text-[#ABB8C4]">Personal Information</h2>
+          <h2 className="text-xl text-[#FFF]">Personal Information</h2>
         </div>
         <CustomFormField
           fieldType={FormFieldType.INPUT}
@@ -112,7 +122,44 @@ const RegisterForm = ({ user }: { user: User }) => {
           </div>
         </div>
 
-        <div></div>
+        <div className="flex flex-col gap-4 xl:flex-row">
+          <div className="flex-1">
+            <CustomFormField
+              fieldType={FormFieldType.DATE_PICKER}
+              control={form.control}
+              name="birthDate"
+              label="Date of Birth"
+            />
+          </div>
+
+          <div className="flex-1">
+            <CustomFormField
+              fieldType={FormFieldType.SKELETON}
+              control={form.control}
+              name="gender"
+              label="Gender"
+              renderSkeleton={(field) => (
+                <RadioGroup
+                  className="flex h-11 gap-6 xl:justify-between"
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                >
+                  {GenderOptions.map((option, i) => (
+                    <div
+                      key={option + i}
+                      className="flex h-full flex-1 items-center gap-2 rounded-md border border-dashed border-dark-500 bg-dark-400 p-3"
+                    >
+                      <RadioGroupItem value={option} id={option} />
+                      <Label htmlFor={option} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
+            />
+          </div>
+        </div>
       </section>
 
       <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
