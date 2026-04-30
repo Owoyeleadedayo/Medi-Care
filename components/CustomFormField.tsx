@@ -18,6 +18,8 @@ import { Checkbox } from "./ui/checkbox";
 
 import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
+import { Textarea } from "./ui/textarea";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
 
 interface CustomProps<T extends FieldValues> {
   control: Control<T>;
@@ -66,7 +68,6 @@ const RenderField = <T extends FieldValues>({
           />
         </div>
       );
-
     case FormFieldType.PHONE_INPUT:
       return (
         <PhoneInput
@@ -80,7 +81,6 @@ const RenderField = <T extends FieldValues>({
           className="mt-1 h-9 rounded-md px-3 text-sm border bg-[#1A1D21] border-[#363A3D]"
         />
       );
-
     case FormFieldType.CHECKBOX:
       return (
         <div className="flex items-center gap-3">
@@ -90,7 +90,6 @@ const RenderField = <T extends FieldValues>({
           </label>
         </div>
       );
-
     case FormFieldType.DATE_PICKER:
       return (
         <div className="flex items-center rounded-md border border-[#363A3D] bg-[#1A1D21] px-2">
@@ -106,10 +105,29 @@ const RenderField = <T extends FieldValues>({
           />
         </div>
       );
-
     case FormFieldType.SKELETON:
       return props.renderSkeleton?.(field) ?? null;
+    case FormFieldType.TEXTAREA:
+      return (
+        <Textarea
+          placeholder={props.placeholder}
+          {...field}
+          className="shad-textArea"
+          disabled={props.disabled}
+        />
+      );
+    case FormFieldType.SELECT:
+      return (
+        <Select value={field.value || ""} onValueChange={field.onChange}>
+          <SelectTrigger className="mt-1 bg-[#1A1D21] border border-[#363A3D] text-white">
+            <SelectValue placeholder={props.placeholder} />
+          </SelectTrigger>
 
+          <SelectContent className="bg-[#1A1D21] text-white">
+            {props.children}
+          </SelectContent>
+        </Select>
+      );
     default:
       return null;
   }
