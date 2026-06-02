@@ -24,6 +24,8 @@ export enum FormFieldType {
 const PatientForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<z.infer<typeof UserFormValidation>>({
     resolver: zodResolver(UserFormValidation),
     defaultValues: {
@@ -33,48 +35,33 @@ const PatientForm = () => {
     },
   });
 
-  const formatPhone = (phone: string): string => {
-    if (!phone) throw new Error("Phone number is required");
-
-    let digits = phone.replace(/\D/g, "");
-
-    if (digits.startsWith("0")) {
-      digits = `234${digits.slice(1)}`;
-    }
-
-    if (!digits.startsWith("234")) {
-      throw new Error("Invalid Nigerian number");
-    }
-
-    const formatted = `+${digits}`;
-
-    if (!/^\+[1-9]\d{7,14}$/.test(formatted)) {
-      throw new Error("Invalid phone format");
-    }
-
-    return formatted;
-  };
-
   const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
     setIsLoading(true);
+    setError(null);
 
     try {
+      // PhoneInput already outputs E.164 (e.g. +2348012345678) — pass directly
       const user = {
         name: values.name,
         email: values.email,
-        phone: formatPhone(values.phone),
+        phone: values.phone,
       };
 
       const newUser = await createUser(user);
 
       if (newUser) {
         router.push(`/patients/${newUser.$id}/register`);
+      } else {
+        setError("Unable to create account. Please try again.");
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err: unknown) {
+      console.error("PatientForm submit error:", err);
+      const msg =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(msg);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -101,6 +88,7 @@ const PatientForm = () => {
         fieldType={FormFieldType.INPUT}
         control={form.control}
         name="email"
+        label="Email Address"
         placeholder="Please Enter Your Email Address"
         icon={Mail}
       />
@@ -109,7 +97,14 @@ const PatientForm = () => {
         fieldType={FormFieldType.PHONE_INPUT}
         control={form.control}
         name="phone"
+        label="Phone Number"
       />
+
+      {error && (
+        <div className="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-3">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
 
       <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
     </form>

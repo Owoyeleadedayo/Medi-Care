@@ -84,8 +84,15 @@ const RenderField = <T extends FieldValues>({
     case FormFieldType.CHECKBOX:
       return (
         <div className="flex items-center gap-3">
-          <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
-          <label className="text-sm text-gray-300 cursor-pointer">
+          <Checkbox
+            id={props.name}
+            checked={field.value}
+            onCheckedChange={field.onChange}
+          />
+          <label
+            htmlFor={props.name}
+            className="text-sm text-gray-300 cursor-pointer"
+          >
             {props.label}
           </label>
         </div>
@@ -155,7 +162,7 @@ const CustomFormField = <T extends FieldValues>({
 
             <RenderField
               field={field}
-              props={{ ...props, fieldType, name, control }}
+              props={{ ...props, fieldType, name, control, label }}
             />
 
             {fieldState.error && (

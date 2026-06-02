@@ -11,7 +11,7 @@ import SubmitButton from "../SubmitButton";
 
 import { Mail, User } from "lucide-react";
 import { PatientFormValidation } from "@/lib/validation";
-import { createUser } from "@/lib/actions/patient.actions";
+import { registerPatient } from "@/lib/actions/patient.actions";
 import { FormFieldType } from "./PatientForm";
 
 import { Label } from "../ui/label";
@@ -24,55 +24,75 @@ import "react-phone-number-input/style.css";
 import { SelectItem } from "../ui/select";
 import FileUploader from "../FileUploader";
 
-type PatientFormValues = z.infer<typeof PatientFormValidation>;
 
 const RegisterForm = ({ user }: { user: User }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<PatientFormValues>({
+  const form = useForm<z.infer<typeof PatientFormValidation>>({
     resolver: zodResolver(PatientFormValidation),
     defaultValues: {
       ...PatientFormDefaultValues,
       name: user?.name ?? "",
       email: user?.email ?? "",
       phone: user?.phone ?? "",
-      birthDate: undefined,
-      gender: "Male",
     },
   });
 
-  const formatPhone = (phone: string): string => {
-    let digits = phone.replace(/\D/g, "");
-
-    if (digits.startsWith("0")) {
-      digits = `234${digits.slice(1)}`;
-    }
-
-    if (!digits.startsWith("234")) {
-      throw new Error("Invalid Nigerian number");
-    }
-
-    return `+${digits}`;
-  };
-
-  // ✅ properly typed submit
-  const onSubmit = async (values: PatientFormValues) => {
+  const onSubmit = async (values: z.infer<typeof PatientFormValidation>) => {
     setIsLoading(true);
+    setError(null);
+
+    // Build FormData for the identification document if one was uploaded
+    let formData: FormData | undefined;
+    if (values.identificationDocument && values.identificationDocument.length > 0) {
+      const blobFile = new Blob([values.identificationDocument[0]], {
+        type: values.identificationDocument[0].type,
+      });
+      formData = new FormData();
+      formData.append("blobFile", blobFile);
+      formData.append("fileName", values.identificationDocument[0].name);
+    }
 
     try {
-      const payload = {
-        ...values,
-        phone: formatPhone(values.phone),
+      const patient = {
+        userId: user.$id,
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        birthDate: values.birthDate ? new Date(values.birthDate) : new Date(),
+        gender: values.gender,
+        address: values.address,
+        occupation: values.occupation,
+        emergencyContactName: values.emergencyContactName,
+        emergencyContactNumber: values.emergencyContactNumber,
+        primaryPhysician: values.primaryPhysician,
+        insuranceProvider: values.insuranceProvider,
+        insurancePolicyNumber: values.insurancePolicyNumber,
+        allergies: values.allergies,
+        currentMedication: values.currentMedication,
+        familyMedicalHistory: values.familyMedicalHistory,
+        pastMedicalHistory: values.pastMedicalHistory,
+        identificationType: values.identificationType,
+        identificationNumber: values.identificationNumber,
+        privacyConsent: values.privacyConsent,
+        treatmentConsent: values.treatmentConsent,
+        disclosureConsent: values.disclosureConsent,
       };
 
-      const newUser = await createUser(payload);
+      const newPatient = await registerPatient(patient, formData);
 
-      if (newUser) {
-        router.push(`/patients/${newUser.$id}/register`);
+      if (newPatient) {
+        router.push(`/patients/${user.$id}/new-appointment`);
+      } else {
+        setError("Registration failed. Please check your details and try again.");
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.error("RegisterForm submit error:", err);
+      const msg =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -88,8 +108,8 @@ const RegisterForm = ({ user }: { user: User }) => {
       </section>
 
       <section className="space-y-6">
-        <div className="mb-9 space-y-1">
-          <h2 className="text-xl text-white">Personal Information</h2>
+        <div className="mb-5 space-y-1">
+          <h2 className="text-2xl text-white">Personal Information</h2>
         </div>
 
         <CustomFormField
@@ -214,8 +234,8 @@ const RegisterForm = ({ user }: { user: User }) => {
       </section>
 
       <section className="space-y-6">
-        <div className="mb-9 space-y-1">
-          <h2 className="sub-header">Medical Information</h2>
+        <div className="mb-5 space-y-1">
+          <h2 className="text-2xl text-white">Medical Information</h2>
         </div>
 
         {/* PRIMARY CARE PHYSICIAN */}
@@ -308,8 +328,10 @@ const RegisterForm = ({ user }: { user: User }) => {
       </section>
 
       <section className="space-y-6">
-        <div className="mb-9 space-y-1">
-          <h2 className="sub-header">Identification and Verification</h2>
+        <div className="mb-5 space-y-1">
+          <h2 className="text-2xl text-white">
+            Identification and Verification
+          </h2>
         </div>
 
         <CustomFormField
@@ -348,7 +370,41 @@ const RegisterForm = ({ user }: { user: User }) => {
         />
       </section>
 
-      <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
+      <section className="space-y-6">
+        <div className="mb-5 space-y-1">
+          <h2 className="text-2xl text-white">Consent and Privacy</h2>
+        </div>
+
+        <CustomFormField
+          fieldType={FormFieldType.CHECKBOX}
+          control={form.control}
+          name="treatmentConsent"
+          label="I consent to receive treatment for my health condition."
+        />
+
+        <CustomFormField
+          fieldType={FormFieldType.CHECKBOX}
+          control={form.control}
+          name="disclosureConsent"
+          label="I consent to the use and disclosure of my health
+            information for treatment purposes."
+        />
+
+        <CustomFormField
+          fieldType={FormFieldType.CHECKBOX}
+          control={form.control}
+          name="privacyConsent"
+          label="I acknowledge that I have reviewed and agree to the privacy policy"
+        />
+      </section>
+
+      {error && (
+        <div className="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-3">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+
+      <SubmitButton isLoading={isLoading}>Submit and Continue</SubmitButton>
     </form>
   );
 };
