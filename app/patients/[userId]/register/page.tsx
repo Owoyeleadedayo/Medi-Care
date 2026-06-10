@@ -1,10 +1,13 @@
 import RegisterForm from "@/components/forms/RegisterForm";
 import { getUser } from "@/lib/actions/patient.actions";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 const Registration = async ({ params }: SearchParamProps) => {
   const { userId } = await params;
   const user = await getUser(userId);
+
+  if (!user) redirect("/");
   return (
     <div className="flex h-screen max-h-screen">
       <section className="remove-scrollbar relative flex-1 overflow-y-auto px-[5%]">
