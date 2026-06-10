@@ -3,7 +3,7 @@ declare type SearchParamProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-declare type Gender = "Male" | "Female" | "Other";
+declare type Gender = "male" | "female" | "other";
 declare type Status = "pending" | "scheduled" | "cancelled";
 
 declare interface CreateUserParams {
@@ -12,9 +12,9 @@ declare interface CreateUserParams {
   phone: string;
 }
 declare interface User extends CreateUserParams {
-  gender: Gender;
-  birthDate: any;
   $id: string;
+  gender: Gender;
+  birthDate: Date | null;
 }
 
 declare interface RegisterUserParams extends CreateUserParams {
@@ -53,6 +53,12 @@ declare type CreateAppointmentParams = {
 declare type UpdateAppointmentParams = {
   appointmentId: string;
   userId: string;
-  appointment: Appointment;
+  timeZone: string;
+  appointment: {
+    primaryPhysician: string;
+    schedule: Date;
+    status: Status;
+    cancellationReason?: string;
+  };
   type: string;
 };

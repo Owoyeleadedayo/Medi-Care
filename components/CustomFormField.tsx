@@ -22,7 +22,7 @@ import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
 
 interface CustomProps<T extends FieldValues> {
-  control: Control<T>;
+  control: Control<T, Record<string, unknown>>;
   fieldType: FormFieldType;
   name: Path<T>;
   label?: string;
@@ -32,8 +32,6 @@ interface CustomProps<T extends FieldValues> {
   dateFormat?: string;
   showTimeSelect?: boolean;
   children?: React.ReactNode;
-
-  // 🔥 important for custom components like RadioGroup
   renderSkeleton?: (
     field: ControllerRenderProps<T, Path<T>>,
   ) => React.ReactNode;
@@ -100,7 +98,7 @@ const RenderField = <T extends FieldValues>({
     case FormFieldType.DATE_PICKER:
       return (
         <div className="flex items-center rounded-md border border-[#363A3D] bg-[#1A1D21] px-2">
-          <CalendarHeart className="mr-2 h-5 w-5 text-gray-400" />
+          <CalendarHeart className="h-5 w-5 text-gray-400" />
 
           <DatePicker
             selected={field.value ?? undefined}
@@ -108,7 +106,7 @@ const RenderField = <T extends FieldValues>({
             showTimeSelect={showTimeSelect ?? false}
             dateFormat={dateFormat ?? "MM/dd/yyyy"}
             placeholderText={placeholder || "Select date"}
-            className="w-full bg-transparent outline-none text-white"
+            className="w-full h-7 bg-transparent outline-none text-white overflow-hidden border-transparent placeholder:text-dark-600 text-14-medium rounded-md px-3"
           />
         </div>
       );
@@ -119,7 +117,7 @@ const RenderField = <T extends FieldValues>({
         <Textarea
           placeholder={props.placeholder}
           {...field}
-          className="shad-textArea"
+          className="bg-dark-400 placeholder:text-dark-600 border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0"
           disabled={props.disabled}
         />
       );

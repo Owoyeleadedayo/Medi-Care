@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import CustomFormField from "../CustomFormField";
@@ -17,13 +17,17 @@ import { FormFieldType } from "./PatientForm";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
-import { Doctors, GenderOptions, IdentificationTypes, PatientFormDefaultValues } from "@/constants";
+import {
+  Doctors,
+  GenderOptions,
+  IdentificationTypes,
+  PatientFormDefaultValues,
+} from "@/constants";
 
 import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
 import { SelectItem } from "../ui/select";
 import FileUploader from "../FileUploader";
-
 
 const RegisterForm = ({ user }: { user: User }) => {
   const router = useRouter();
@@ -40,29 +44,38 @@ const RegisterForm = ({ user }: { user: User }) => {
     },
   });
 
+  const { reset } = form;
+
+  useEffect(() => {
+    reset({
+      ...PatientFormDefaultValues,
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
+    });
+  }, [user, reset]);
+
   const onSubmit = async (values: z.infer<typeof PatientFormValidation>) => {
     setIsLoading(true);
     setError(null);
-
-    // Build FormData for the identification document if one was uploaded
     let formData: FormData | undefined;
-    if (values.identificationDocument && values.identificationDocument.length > 0) {
-      const blobFile = new Blob([values.identificationDocument[0]], {
-        type: values.identificationDocument[0].type,
-      });
+    if (
+      values.identificationDocument &&
+      values.identificationDocument.length > 0
+    ) {
+      const file = values.identificationDocument[0] as File;
       formData = new FormData();
-      formData.append("blobFile", blobFile);
-      formData.append("fileName", values.identificationDocument[0].name);
+      formData.append("blobFile", file);
+      formData.append("fileName", file.name);
     }
 
     try {
-      const patient = {
-        userId: user.$id,
+      const patient: RegisterUserParams = {
         name: values.name,
         email: values.email,
         phone: values.phone,
-        birthDate: values.birthDate ? new Date(values.birthDate) : new Date(),
-        gender: values.gender,
+        birthDate: new Date(values.birthDate ?? new Date()),
+        gender: values.gender.toLowerCase() as Gender,
         address: values.address,
         occupation: values.occupation,
         emergencyContactName: values.emergencyContactName,
@@ -70,15 +83,15 @@ const RegisterForm = ({ user }: { user: User }) => {
         primaryPhysician: values.primaryPhysician,
         insuranceProvider: values.insuranceProvider,
         insurancePolicyNumber: values.insurancePolicyNumber,
-        allergies: values.allergies,
-        currentMedication: values.currentMedication,
-        familyMedicalHistory: values.familyMedicalHistory,
-        pastMedicalHistory: values.pastMedicalHistory,
-        identificationType: values.identificationType,
-        identificationNumber: values.identificationNumber,
-        privacyConsent: values.privacyConsent,
+        allergies: values.allergies ?? "",
+        currentMedication: values.currentMedication ?? "",
+        familyMedicalHistory: values.familyMedicalHistory ?? "",
+        pastMedicalHistory: values.pastMedicalHistory ?? "",
+        identificationType: values.identificationType ?? "",
+        identificationNumber: values.identificationNumber ?? "",
         treatmentConsent: values.treatmentConsent,
         disclosureConsent: values.disclosureConsent,
+        privacyConsent: values.privacyConsent,
       };
 
       const newPatient = await registerPatient(patient, formData);
@@ -86,12 +99,16 @@ const RegisterForm = ({ user }: { user: User }) => {
       if (newPatient) {
         router.push(`/patients/${user.$id}/new-appointment`);
       } else {
-        setError("Registration failed. Please check your details and try again.");
+        setError(
+          "Registration failed. Please check your details and try again.",
+        );
       }
     } catch (err: unknown) {
       console.error("RegisterForm submit error:", err);
       const msg =
-        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -167,13 +184,14 @@ const RegisterForm = ({ user }: { user: User }) => {
                 >
                   {GenderOptions.map((option) => {
                     const id = `gender-${option}`;
+                    const value = option.toLowerCase();
 
                     return (
                       <div
                         key={option}
                         className="flex flex-1 items-center gap-2 rounded-md border border-dashed border-[#363A3D] bg-[#1A1D21] p-3"
                       >
-                        <RadioGroupItem value={option} id={id} />
+                        <RadioGroupItem value={value} id={id} />
                         <Label htmlFor={id} className="cursor-pointer">
                           {option}
                         </Label>

@@ -87,6 +87,27 @@ export const getUser = async (userId: string) => {
   }
 };
 
+export const getPatient = async (userId: string) => {
+  try {
+    // First get the user to retrieve their email
+    const user = await users.get(userId);
+
+    const patients = await databases.listDocuments(
+      DATABASE_ID!,
+      PATIENT_COLLECTION_ID!,
+      [Query.equal("email", [user.email])],
+    );
+
+    return parseStringify(patients.documents[0]);
+  } catch (error) {
+    console.error(
+      "An error occurred while retrieving the patient details:",
+      error,
+    );
+    throw error;
+  }
+};
+
 export const registerPatient = async (
   patient: RegisterUserParams,
   identificationDocument?: FormData,
@@ -96,16 +117,15 @@ export const registerPatient = async (
 
     if (identificationDocument) {
       const blobFile = identificationDocument.get("blobFile") as File;
-
       const arrayBuffer = await blobFile.arrayBuffer();
-
       const inputFile = InputFile.fromBuffer(
         Buffer.from(arrayBuffer),
         identificationDocument.get("fileName") as string,
       );
-
       file = await storage.createFile(BUCKET_ID!, ID.unique(), inputFile);
     }
+
+    console.log("PATIENT PAYLOAD:", JSON.stringify({ ...patient }, null, 2)); // 👈 add this
 
     const newPatient = await databases.createDocument(
       DATABASE_ID!,
@@ -122,6 +142,7 @@ export const registerPatient = async (
 
     return JSON.parse(JSON.stringify(newPatient));
   } catch (error) {
-    console.log("REGISTER PATIENT ERROR:", error);
+    console.error("REGISTER PATIENT ERROR:", error); // 👈 use console.error
+    throw error; // 👈 re-throw so the form catches it
   }
 };
