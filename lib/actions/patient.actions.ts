@@ -5,9 +5,9 @@ import {
   BUCKET_ID,
   DATABASE_ID,
   databases,
-  ENDPOINT,
+  ENDPOINT_URL,
   PATIENT_COLLECTION_ID,
-  PROJECT_ID,
+  PROJECT,
   storage,
   users,
 } from "../appwrite.server";
@@ -134,7 +134,7 @@ export const registerPatient = async (
       {
         identificationDocumentId: file?.$id ?? null,
         identificationDocumentUrl: file
-          ? `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${PROJECT_ID}`
+          ? `${ENDPOINT_URL}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${PROJECT}`
           : null,
         ...patient,
       },

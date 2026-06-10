@@ -30,7 +30,7 @@ export const createAppointment = async (
     return parseStringify(newAppointment);
   } catch (error) {
     console.error("An error occurred while creating a new appointment:", error);
-    throw error; // ✅ re-throw so the form catch block gets the real message
+    throw error; // re-throw so the form catch block gets the real message
   }
 };
 

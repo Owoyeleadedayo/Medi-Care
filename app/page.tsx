@@ -1,12 +1,15 @@
-"use client";
 import PatientForm from "@/components/forms/PatientForm";
+import { PasskeyModal } from "@/components/PasskeyModal";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Home() {
+
+export default async function Home({ searchParams }: SearchParamProps) {
+  const isAdmin = (await searchParams).admin === "true";
+
   return (
     <div className="flex h-screen max-h-screen">
-      {/* TODO: OTP verification | Passkey Modal */}
+      {isAdmin && <PasskeyModal />}
       <section className="relative flex-1 overflow-y-auto px-[5%] my-auto">
         <div className="mx-auto flex size-full flex-col py-10 max-w-124">
           <div className="flex max-w-50 gap-3">
