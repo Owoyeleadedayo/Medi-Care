@@ -71,7 +71,7 @@ export const getRecentAppointmentList = async () => {
     const data = {
       totalCount: appointments.total,
       ...counts,
-      documents: appointments.documents,
+      documents: appointments.documents as unknown as Appointment[],
     };
 
     return parseStringify(data);

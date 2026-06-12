@@ -63,7 +63,7 @@ export const PasskeyModal = () => {
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent className="w-full space-y-5 bg-black/95 border border-black outline-none">
+      <AlertDialogContent className="w-full space-y-5 bg-[#1A1D21] border border-[#363A3D] outline-none">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex w-full items-start justify-between">
             Admin Access Verification

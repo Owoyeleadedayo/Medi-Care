@@ -77,3 +77,9 @@ export const Doctors = [
     name: "Hardik Sharma",
   },
 ];
+
+export const StatusIcon = {
+  scheduled: "/assets/Icons/check.svg",
+  pending: "/assets/Icons/pending.svg",
+  cancelled: "/assets/Icons/cancelled.svg",
+};
