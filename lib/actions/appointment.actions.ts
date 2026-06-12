@@ -10,6 +10,7 @@ import {
   DATABASE_ID,
   databases,
   messaging,
+  PATIENT_COLLECTION_ID,
 } from "../appwrite.server";
 import { parseStringify, formatDateTime } from "../utils";
 
@@ -68,10 +69,43 @@ export const getRecentAppointmentList = async () => {
       initialCounts,
     );
 
+    // Populate patient name for each appointment
+    const populatedDocuments = await Promise.all(
+      (appointments.documents as unknown as Appointment[]).map(
+        async (appointment) => {
+          // If patient is already an object with a name, use it directly
+          if (
+            typeof appointment.patient === "object" &&
+            appointment.patient?.name
+          ) {
+            return appointment;
+          }
+
+          // Otherwise fetch the patient document by ID
+          try {
+            const patientId =
+              typeof appointment.patient === "string"
+                ? appointment.patient
+                : appointment.patient.$id;
+
+            const patientDoc = await databases.getDocument(
+              DATABASE_ID!,
+              PATIENT_COLLECTION_ID!,
+              patientId,
+            );
+
+            return { ...appointment, patient: patientDoc };
+          } catch {
+            return appointment;
+          }
+        },
+      ),
+    );
+
     const data = {
       totalCount: appointments.total,
       ...counts,
-      documents: appointments.documents as unknown as Appointment[],
+      documents: populatedDocuments as unknown as Appointment[],
     };
 
     return parseStringify(data);

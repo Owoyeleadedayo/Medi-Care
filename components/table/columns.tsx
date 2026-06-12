@@ -24,6 +24,7 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Patient",
     cell: ({ row }) => {
       const appointment = row.original;
+      console.log("patient field:", appointment.patient); 
       return (
         <p className="text-[14px] text-white leading-4.5 font-medium">
           {appointment.patient.name}
@@ -37,7 +38,7 @@ export const columns: ColumnDef<Appointment>[] = [
     cell: ({ row }) => {
       const appointment = row.original;
       return (
-        <div className="min-w-[115px]">
+        <div className="min-w-28.75">
           <StatusBadge status={appointment.status} />
         </div>
       );
@@ -49,7 +50,7 @@ export const columns: ColumnDef<Appointment>[] = [
     cell: ({ row }) => {
       const appointment = row.original;
       return (
-        <p className="text-[14px] leading-4.5 font-normal min-w-[100px]">
+        <p className="text-[14px] leading-4.5 font-normal min-w-25">
           {formatDateTime(appointment.schedule).dateTime}
         </p>
       );
@@ -60,21 +61,24 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Doctor",
     cell: ({ row }) => {
       const appointment = row.original;
-
       const doctor = Doctors.find(
-        (doctor) => doctor.name === appointment.primaryPhysician,
+        (doc) => doc.name === appointment.primaryPhysician,
       );
 
       return (
         <div className="flex items-center gap-3">
-          <Image
-            src={doctor.image}
-            alt="doctor"
-            width={100}
-            height={100}
-            className="size-8"
-          />
-          <p className="whitespace-nowrap">Dr. {doctor?.name}</p>
+          {doctor?.image && (
+            <Image
+              src={doctor.image}
+              alt={doctor.name}
+              width={100}
+              height={100}
+              className="size-8 rounded-full"
+            />
+          )}
+          <p className="whitespace-nowrap">
+            Dr. {doctor?.name ?? appointment.primaryPhysician}
+          </p>
         </div>
       );
     },
