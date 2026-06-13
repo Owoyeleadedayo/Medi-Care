@@ -282,7 +282,7 @@ const RegisterForm = ({ user }: { user: User }) => {
               fieldType={FormFieldType.INPUT}
               control={form.control}
               name="insuranceProvider"
-              label="Insurance provider"
+              label="Insurance provider" 
               placeholder="BlueCross BlueShield"
             />
           </div>
