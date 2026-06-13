@@ -45,12 +45,14 @@ export const PatientFormValidation = z.object({
     .string()
     .min(2, "Insurance name must be at least 2 characters")
     .max(50, "Insurance name must be at most 50 characters")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   insurancePolicyNumber: z
     .string()
     .min(2, "Policy number must be at least 2 characters")
     .max(50, "Policy number must be at most 50 characters")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   allergies: z.string().optional(),
   currentMedication: z.string().optional(),
   familyMedicalHistory: z.string().optional(),
